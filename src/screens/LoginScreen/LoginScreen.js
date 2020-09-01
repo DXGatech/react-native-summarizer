@@ -3,15 +3,49 @@ import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import styles from './styles';
 
+import {firebase} from '../../firebase/config';
+
 export default function LoginScreen({navigation}) {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+    constructor() {
+        super();
+        this.state = {
+            email: '',
+            password: '',
+            isLoading: false
+        }
+    }
+
+    setState = (val, prop) => {
+        const state = this.state;
+        state[prop] = val;
+        this.setState(state);
+    }
 
     const onFooterLinkPress = () => {
         navigation.navigate('Registration')
     }
 
     const onLoginPress = () => {
+        if(this.state.email == '' && this.state.password == '') {
+            Alert.alert('Either email or password is missing!')
+        } else {
+            this.setState({
+                isLoading: true,
+            })
+            firebase
+            .auth()
+            .signInWithEmailAndPassword(this.state.email, this.state.password)
+            .then((res) => {
+                console.log(res)
+                console.log('User logged in successfully')
+                this.setState({
+                    email: '',
+                    password: ''
+                    isLoading: false
+                })
+            })
+            .catch(error => this.setState({ errorMessage: error.message}))
+        }
     }
 
     return (
@@ -27,8 +61,8 @@ export default function LoginScreen({navigation}) {
                     style={styles.input}
                     placeholder='E-mail'
                     placeholderTextColor="#aaaaaa"
-                    onChangeText={(text) => setEmail(text)}
-                    value={email}
+                    value={this.state.email}
+                    onChangeText={(val) => this.updateInputVal(val, 'email')}
                     underlineColorAndroid="transparent"
                     autoCapitalize="none"
                 />
@@ -37,8 +71,8 @@ export default function LoginScreen({navigation}) {
                     placeholderTextColor="#aaaaaa"
                     secureTextEntry
                     placeholder='Password'
-                    onChangeText={(text) => setPassword(text)}
-                    value={password}
+                    value={this.state.password}
+                    onChangeText={(val) => this.updateInputVal(val, 'password')}
                     underlineColorAndroid="transparent"
                     autoCapitalize="none"
                 />
