@@ -3,6 +3,8 @@ import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import styles from './styles';
 
+import {firebase} from '../../firebase/config';
+
 export default function LoginScreen({navigation}) {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -14,6 +16,24 @@ export default function LoginScreen({navigation}) {
     }
 
     const onRegisterPress = () => {
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((response) => {
+            // TODO: store the following user info in a global storage such as Redux
+            const uid = response.user.uid;
+            const userData = {
+                id: uid, 
+                email: email, 
+                username: name,
+            };
+            userdb = firebase.firestore().collection('users'); 
+            userdb.doc(uid).set(userData).then(() => {
+                navigation.navigate('HomePage', {user: userData});
+            }).catch(error => {
+                alert(error);
+            });
+        }).catch(error => {
+            alert(error);
+        });
     }
 
     return (
